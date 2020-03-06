@@ -5,6 +5,7 @@ using ArgParse
 
 include("../../src/lib/constants.jl")
 include("../../src/lib/topology.jl")
+include("../../src/lib/molecule.jl")
 include("../../src/lib/conformation.jl")
 include("../../src/lib/parser_top.jl")
 include("../../src/lib/parser_crd.jl")
@@ -15,27 +16,28 @@ function main(args)
     verbose = get(args, "verbose", false)
 
     top_filename = get(args, "top", "")
-    crd_filename = get(args, "crd", "")
-    pdb_filename = get(args, "output", "")
+    pdb_filename = get(args, "pdb", "")
+    crd_filename = get(args, "output", "")
 
-    # ================================
-    # Read in topology and coordinates
-    # ================================
-
+    # ================
+    # Read in topology
+    # ================
     mytop = read_grotop(top_filename)
-    mycrd = read_grocrd(crd_filename)
 
-    # =================
-    # Write to PDB file
-    # =================
+    # ============================
+    # Read in coordinates from PDB
+    # ============================
+    new_molecule = read_PDB(pdb_filename)
+    num_atoms = length(new_molecule.atom_coors[1, :])
+    new_conf = Conformation(num_atoms, new_molecule.atom_coors)
 
-    if length(pdb_filename) == 0
+    if length(crd_filename) == 0
         system_name = top_filename[1:end-4]
     else
-        system_name = pdb_filename[1:end-4]
+        system_name = crd_filename[1:end-4]
     end
-    args["cgconnect"] = false
-    write_pdb(mytop, mycrd, system_name, args)
+
+    write_grocrd(mytop, new_conf, system_name, args)
 
     if verbose
         println("> converting from *.gro to *.pdb : DONE!")
@@ -55,8 +57,8 @@ function parse_commandline()
         required = true
         arg_type = String
 
-        "--crd", "-c"
-        help     = "Coordinate file name (gromacs style)."
+        "--pdb", "-p"
+        help     = "PDB file name."
         required = true
         arg_type = String
 
