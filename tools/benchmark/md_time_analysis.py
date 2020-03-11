@@ -38,8 +38,8 @@ def main(log_dir, verbose):
                     continue
                 if line.startswith("INFO:") and words[1] != "STEP":
                     md_steps = int(words[1])
-                if words[0] == "total" and words[1] == "time":
-                    tot_time = float(words[3])
+                if words[0] == "dynamics" and words[1] == "=":
+                    tot_time = float(words[2])
                     run_total_time_all.append(tot_time)
                 elif words[0] == "timestep" and words[1] == "=":
                     time_step = float(words[2])
